@@ -26,29 +26,29 @@ const db = mongoClient.db("studiospace");
 const studiosCollection = db.collection("studios");
 const bookingsCollection = db.collection("bookings");
 
-// const verifyToken = async (req, res, next) => {
-//   const authHeader = req.headers.authorization;
-//   console.log(authHeader);
-//   if (!authHeader) {
-//     return res.status(401).send({ message: "Unauthorized!" });
-//   }
-//   const token = authHeader.split(" ")[1];
-//   console.log(token);
-//   if (!token) {
-//     return res.status(401).send({ message: "Unauthorized!" });
-//   }
+const verifyToken = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  console.log(authHeader);
+  if (!authHeader) {
+    return res.status(401).send({ message: "Unauthorized!" });
+  }
+  const token = authHeader.split(" ")[1];
+  console.log(token);
+  if (!token) {
+    return res.status(401).send({ message: "Unauthorized!" });
+  }
 
-//   const JWKS = createRemoteJWKSet(
-//     new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
-//   );
+  const JWKS = createRemoteJWKSet(
+    new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
+  );
 
-//   try {
-//     const { payload } = await jwtVerify(token, JWKS);
-//     next();
-//   } catch (error) {
-//     return res.status(500).send({ message: "Server Error!" });
-//   }
-// };
+  try {
+    const { payload } = await jwtVerify(token, JWKS);
+    next();
+  } catch (error) {
+    return res.status(500).send({ message: "Server Error!" });
+  }
+};
 
 app.get("/", (req, res) => {
   res.send({ message: "Server is running fine!" });
@@ -93,7 +93,7 @@ app.get("/studios/:id", async (req, res) => {
   res.send(result);
 });
 
-app.get("/studios/user/:email", async (req, res) => {
+app.get("/studios/user/:email", verifyToken, async (req, res) => {
   const { email } = req.params;
   console.log(email);
   const result = await studiosCollection
@@ -145,7 +145,7 @@ app.post("/bookings", async (req, res) => {
   res.send(result);
 });
 
-app.get("/bookings/:userId", async (req, res) => {
+app.get("/bookings/:userId", verifyToken, async (req, res) => {
   const { userId } = req.params;
   const result = await bookingsCollection
     .find({ "renter._id": userId })
