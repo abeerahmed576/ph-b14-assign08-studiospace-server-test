@@ -28,12 +28,10 @@ const bookingsCollection = db.collection("bookings");
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
   if (!authHeader) {
     return res.status(401).send({ message: "Unauthorized!" });
   }
   const token = authHeader.split(" ")[1];
-  console.log(token);
   if (!token) {
     return res.status(401).send({ message: "Unauthorized!" });
   }
@@ -95,17 +93,15 @@ app.get("/studios/:id", async (req, res) => {
 
 app.get("/studios/user/:email", verifyToken, async (req, res) => {
   const { email } = req.params;
-  console.log(email);
   const result = await studiosCollection
     .find({
       "host.email": email,
     })
     .toArray();
-  console.log(result);
   res.send(result);
 });
 
-app.patch("/studios/:id", async (req, res) => {
+app.patch("/studios/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
   const data = req.body;
   const result = await studiosCollection.updateOne(
@@ -115,7 +111,7 @@ app.patch("/studios/:id", async (req, res) => {
   res.json(result);
 });
 
-app.delete("/studios/:id", async (req, res) => {
+app.delete("/studios/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
   const result = await studiosCollection.deleteOne({
     _id: new ObjectId(id),
@@ -123,13 +119,13 @@ app.delete("/studios/:id", async (req, res) => {
   res.json(result);
 });
 
-app.post("/dashboard/add-studio", async (req, res) => {
+app.post("/dashboard/add-studio", verifyToken, async (req, res) => {
   const data = req.body;
   const result = await studiosCollection.insertOne(data);
   res.send(result);
 });
 
-app.post("/bookings", async (req, res) => {
+app.post("/bookings", verifyToken, async (req, res) => {
   const data = req.body;
   const prevBookings = await bookingsCollection
     .find({ status: "Confirmed", "studio._id": data.studio._id })
@@ -153,7 +149,7 @@ app.get("/bookings/:userId", verifyToken, async (req, res) => {
   res.send(result);
 });
 
-app.delete("/bookings/:id", async (req, res) => {
+app.delete("/bookings/:id", verifyToken, async (req, res) => {
   const { id } = req.params;
   const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
