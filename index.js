@@ -26,29 +26,29 @@ const db = mongoClient.db("studiospace");
 const studiosCollection = db.collection("studios");
 const bookingsCollection = db.collection("bookings");
 
-const verifyToken = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  console.log(authHeader);
-  if (!authHeader) {
-    return res.status(401).send({ message: "Unauthorized!" });
-  }
-  const token = authHeader.split(" ")[1];
-  console.log(token);
-  if (!token) {
-    return res.status(401).send({ message: "Unauthorized!" });
-  }
+// const verifyToken = async (req, res, next) => {
+//   const authHeader = req.headers.authorization;
+//   console.log(authHeader);
+//   if (!authHeader) {
+//     return res.status(401).send({ message: "Unauthorized!" });
+//   }
+//   const token = authHeader.split(" ")[1];
+//   console.log(token);
+//   if (!token) {
+//     return res.status(401).send({ message: "Unauthorized!" });
+//   }
 
-  const JWKS = createRemoteJWKSet(
-    new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
-  );
+//   const JWKS = createRemoteJWKSet(
+//     new URL(`${process.env.CLIENT_URL}/api/auth/jwks`),
+//   );
 
-  try {
-    const { payload } = await jwtVerify(token, JWKS);
-    next();
-  } catch (error) {
-    return res.status(500).send({ message: "Server Error!" });
-  }
-};
+//   try {
+//     const { payload } = await jwtVerify(token, JWKS);
+//     next();
+//   } catch (error) {
+//     return res.status(500).send({ message: "Server Error!" });
+//   }
+// };
 
 app.get("/", (req, res) => {
   res.send({ message: "Server is running fine!" });
@@ -93,7 +93,7 @@ app.get("/studios/:id", async (req, res) => {
   res.send(result);
 });
 
-app.get("/studios/user/:email", verifyToken, async (req, res) => {
+app.get("/studios/user/:email", async (req, res) => {
   const { email } = req.params;
   console.log(email);
   const result = await studiosCollection
@@ -105,7 +105,7 @@ app.get("/studios/user/:email", verifyToken, async (req, res) => {
   res.send(result);
 });
 
-app.patch("/studios/:id", verifyToken, async (req, res) => {
+app.patch("/studios/:id", async (req, res) => {
   const { id } = req.params;
   const data = req.body;
   const result = await studiosCollection.updateOne(
@@ -115,7 +115,7 @@ app.patch("/studios/:id", verifyToken, async (req, res) => {
   res.json(result);
 });
 
-app.delete("/studios/:id", verifyToken, async (req, res) => {
+app.delete("/studios/:id", async (req, res) => {
   const { id } = req.params;
   const result = await studiosCollection.deleteOne({
     _id: new ObjectId(id),
@@ -123,13 +123,13 @@ app.delete("/studios/:id", verifyToken, async (req, res) => {
   res.json(result);
 });
 
-app.post("/dashboard/add-studio", verifyToken, async (req, res) => {
+app.post("/dashboard/add-studio", async (req, res) => {
   const data = req.body;
   const result = await studiosCollection.insertOne(data);
   res.send(result);
 });
 
-app.post("/bookings", verifyToken, async (req, res) => {
+app.post("/bookings", async (req, res) => {
   const data = req.body;
   const prevBookings = await bookingsCollection
     .find({ status: "Confirmed", "studio._id": data.studio._id })
@@ -145,7 +145,7 @@ app.post("/bookings", verifyToken, async (req, res) => {
   res.send(result);
 });
 
-app.get("/bookings/:userId", verifyToken, async (req, res) => {
+app.get("/bookings/:userId", async (req, res) => {
   const { userId } = req.params;
   const result = await bookingsCollection
     .find({ "renter._id": userId })
@@ -153,7 +153,7 @@ app.get("/bookings/:userId", verifyToken, async (req, res) => {
   res.send(result);
 });
 
-app.delete("/bookings/:id", verifyToken, async (req, res) => {
+app.delete("/bookings/:id", async (req, res) => {
   const { id } = req.params;
   const result = await bookingsCollection.deleteOne({ _id: new ObjectId(id) });
   res.send(result);
